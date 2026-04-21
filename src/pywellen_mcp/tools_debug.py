@@ -74,14 +74,11 @@ async def debug_find_transition(
     if start_time is None:
         start_time = time_table[0]
     if end_time is None:
-        # Find last valid index
-        idx = 0
-        try:
-            while True:
-                end_time = time_table[idx]
-                idx += 1
-        except IndexError:
-            pass
+        end_time = 0
+        for t in time_table:
+            if t is None:
+                break
+            end_time = t
     
     # Validate condition requirements
     if condition in ["equals", "not_equals", "greater", "less"] and value is None:
@@ -100,8 +97,7 @@ async def debug_find_transition(
     transitions = []
     prev_value = None
     
-    for time_idx, current_value in signal.all_changes():
-        time = time_table[time_idx]
+    for time, current_value in signal.all_changes():
         
         # Skip if outside time window
         if time < start_time:
@@ -242,8 +238,7 @@ async def debug_trace_causality(
             last_change_time = None
             last_change_value = None
             
-            for time_idx, value in signal.all_changes():
-                time = time_table[time_idx]
+            for time, value in signal.all_changes():
                 
                 if time >= target_time:
                     break
@@ -330,8 +325,7 @@ async def debug_event_timeline(
             signal = waveform.get_signal_from_path(signal_path)
             prev_value = None
             
-            for time_idx, value in signal.all_changes():
-                time = time_table[time_idx]
+            for time, value in signal.all_changes():
                 
                 if time < start_time:
                     prev_value = value
@@ -417,13 +411,11 @@ async def search_by_activity(
     if start_time is None:
         start_time = time_table[0]
     if end_time is None:
-        idx = 0
-        try:
-            while True:
-                end_time = time_table[idx]
-                idx += 1
-        except IndexError:
-            pass
+        end_time = 0
+        for t in time_table:
+            if t is None:
+                break
+            end_time = t
     
     time_span = end_time - start_time
     
@@ -448,8 +440,7 @@ async def search_by_activity(
             signal = waveform.get_signal(var)
             toggle_count = 0
             
-            for time_idx, value in signal.all_changes():
-                time = time_table[time_idx]
+            for time, value in signal.all_changes():
                 if start_time <= time <= end_time:
                     toggle_count += 1
             
@@ -535,19 +526,16 @@ async def signal_compare(
     if start_time is None:
         start_time = time_table[0]
     if end_time is None:
-        idx = 0
-        try:
-            while True:
-                end_time = time_table[idx]
-                idx += 1
-        except IndexError:
-            pass
+        end_time = 0
+        for t in time_table:
+            if t is None:
+                break
+            end_time = t
     
     # Build value maps for both signals
     def build_value_map(signal):
         value_map = {}
-        for time_idx, value in signal.all_changes():
-            time = time_table[time_idx]
+        for time, value in signal.all_changes():
             if start_time <= time <= end_time:
                 value_map[time] = str(value)
         return value_map

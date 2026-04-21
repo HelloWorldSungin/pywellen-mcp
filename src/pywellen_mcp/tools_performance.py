@@ -65,18 +65,16 @@ async def perf_get_statistics(
     file_path = session.file_path
     file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
     
-    # Time range
+    # Time range. pywellen 0.20.x TimeTable yields None past the real end
+    # instead of raising IndexError, so iterate and stop on the sentinel.
     start_time = time_table[0]
     end_time = start_time
     time_points = 0
-    idx = 0
-    try:
-        while True:
-            end_time = time_table[idx]
-            time_points = idx + 1
-            idx += 1
-    except IndexError:
-        pass
+    for t in time_table:
+        if t is None:
+            break
+        end_time = t
+        time_points += 1
     
     duration = end_time - start_time
     

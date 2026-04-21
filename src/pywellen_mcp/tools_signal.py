@@ -156,19 +156,17 @@ class SignalTools:
         # Get or cache signal
         signal = self._get_signal(session, variable_path)
 
-        # Collect changes
+        # Collect changes.
+        # pywellen's Signal.all_changes() yields (time, value) tuples where
+        # `time` is already in the waveform's native timescale units (e.g. ps)
+        # — NOT an index into session.time_table. An earlier revision of this
+        # code treated the first element as an index and did
+        # `time_table[time_idx]`, which only works for time 0 (time_table[0]==0)
+        # and returns None for everything else in pywellen 0.19+.
         changes = []
-        time_table = session.time_table
-        
-        try:
-            for time_idx, value_str in signal.all_changes():
-                # Convert index to actual time
-                try:
-                    actual_time = time_table[time_idx]
-                except (IndexError, Exception):
-                    # Time index out of range, skip
-                    continue
 
+        try:
+            for actual_time, value_str in signal.all_changes():
                 # Apply time filters
                 if start_time is not None and actual_time < start_time:
                     continue
