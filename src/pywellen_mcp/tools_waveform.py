@@ -61,20 +61,22 @@ class WaveformTools:
             # Count variables
             var_count = sum(1 for _ in hierarchy.all_vars())
 
-            # Get time range
+            # Get time range.
+            # pywellen 0.20.x TimeTable has no __len__ and yields None past
+            # the real end of the timestamp list — so the older "index until
+            # IndexError" approach hangs forever. Iterate with StopIteration /
+            # None as termination signals instead.
             time_table = session.time_table
             try:
-                min_time = time_table[0]
-                # Find max time by iterating (no length method)
-                max_idx = 0
-                try:
-                    while True:
-                        time_table[max_idx]
-                        max_idx += 1
-                except (IndexError, Exception):
-                    max_idx = max(0, max_idx - 1)
-                max_time = time_table[max_idx] if max_idx >= 0 else min_time
-            except (IndexError, Exception):
+                it = iter(time_table)
+                first = next(it, None)
+                min_time = first if first is not None else 0
+                max_time = min_time
+                for t in it:
+                    if t is None:
+                        break
+                    max_time = t
+            except Exception:
                 min_time = 0
                 max_time = 0
 
