@@ -7,12 +7,11 @@ from typing import Dict, Optional
 from pathlib import Path
 
 try:
-    from pywellen import Waveform, Hierarchy, TimeTable
+    from pywellen import Waveform, Hierarchy
 except ImportError:
     # For development/testing without pywellen installed
     Waveform = None  # type: ignore
     Hierarchy = None  # type: ignore
-    TimeTable = None  # type: ignore
 
 
 @dataclass
